@@ -16,9 +16,10 @@ class App extends React.Component {
 
     this.state = {
       chainId: 1,
-      name: "React",
       provider: null,
       web3: null,
+      networkId: '',
+      currAddress: '',
     }
 
     this.state.web3Modal = new Web3Modal({
@@ -54,31 +55,42 @@ class App extends React.Component {
 
   onConnect = async () => {
 
-    this.setState({
-      provider: await this.state.web3Modal.connect(),
-    })
+    const provider = await this.state.web3Modal.connect()
+    const web3 = new Web3(provider)
 
-    this.setState({
-      web3: new Web3(this.state.provider),
-    })
+    const accounts = await web3.eth.getAccounts();
+    const currAddress = accounts[0];
+    const networkId = await web3.eth.net.getId();
+    // const chainId = await localWeb3.eth.chainId();
+    console.log("currAddress :", currAddress);
 
+    await this.setState({
+      provider,
+      web3,
+      networkId,
+      currAddress,
+    })
   }
 
   componentDidMount() {
+    if (this.state.web3Modal.cachedProvider) {
+      this.onConnect();
+    }
   }
 
   render = () => {
-    const { name } = this.state;
+    const {networkId, currAddress } = this.state;
 
     return (
       <div className="App">
         <Layout>
-          <div>{name}</div>
           <Header>
             <Button type="primary" onClick={this.onConnect}>Connect Wallet</Button>
+            <Button>NetworkId: {networkId}</Button>
+            <Button>Addr: {currAddress}</Button>
           </Header>
-          <Content>Content</Content>
-          <Footer>Footer</Footer>
+          <Content><div>Content</div></Content>
+          <Footer><div>Footer</div></Footer>
         </Layout>
       </div>
     );
